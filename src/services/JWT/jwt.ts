@@ -26,7 +26,7 @@ export class JWT {
         return jwt.verify(token, secret);
     }
 
-    public decodeToken(token: string): null | { [key: string]: any } | string {
+    private decodeToken(token: string): null | { [key: string]: any } | string {
         return jwt.decode(token);
     }
 }
