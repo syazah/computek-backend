@@ -3,11 +3,11 @@ import { OrderStatus, PaymentType } from "../enums/OrderEnum.js";
 import { required } from "zod/mini";
 
 const orderDetailsSchema = new mongoose.Schema({
-    productType: {
+    productName: {
         type: String,
         required: true,
     },
-    productSize: {
+    pageSize: {
         type: String,
         required: true,
     },
@@ -15,7 +15,7 @@ const orderDetailsSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    paperType: {
+    paperConfig: {
         type: String,
         required: true,
     },
