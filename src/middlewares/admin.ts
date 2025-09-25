@@ -10,7 +10,7 @@ export const adminMiddleware = (req: any, res: any, next: any) => {
                 "User not authenticated",
             );
         }
-        if (user.role !== 'admin') {
+        if (user.userType !== 'admin') {
             throw new HttpException(
                 HttpStatus.FORBIDDEN,
                 "Access denied: Admins only",

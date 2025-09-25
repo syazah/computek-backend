@@ -79,7 +79,8 @@ const UserSchema = new Schema({
         unique: false,
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    _id: true
 })
 
 export const User = mongoose.model("User", UserSchema);

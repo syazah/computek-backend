@@ -29,7 +29,7 @@ export const createUserBasedOnUserType = async (req: any, res: any) => {
         return res.status(HttpStatus.CREATED).json({
             success: true,
             message: "User Created Successfully",
-            data: createdUser
+            data: { email: createdUser.email, username: createdUser.username, userType: createdUser.userType }
         })
     } catch (error) {
         throw new HttpException(

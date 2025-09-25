@@ -7,7 +7,6 @@ export const calculateCost = (req: any, res: any) => {
     try {
         const body: IOrderDetails = req.body;
         const validation = orderDetailsValidationSchema.safeParse(body);
-        
         if (!validation.success) {
             throw new HttpException(
                 HttpStatus.BAD_REQUEST,

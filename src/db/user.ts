@@ -28,8 +28,8 @@ export class UserDB {
         return users;
     }
 
-    public async getUserByUsername(username: String, type: UserEnum) {
-        const user = await User.findOne({ username, userType: type });
+    public async getUserByUsername(username: String) {
+        const user = await User.findOne({ username });
         return user;
     }
 }

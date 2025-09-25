@@ -25,19 +25,19 @@ export const loginUser = async (req: any, res: any) => {
                 `Validation failed: ${JSON.stringify(validate.error.format())}`
             )
         }
-        const { username, password, userType } = validate.data;
-        const user = await userDB.getUserByUsername(username, userType);
+        const { username, password } = validate.data;
+        const user = await userDB.getUserByUsername(username);
         if (!user) {
             throw new HttpException(
                 HttpStatus.NOT_FOUND,
-                `User not found with username: ${username} and userType: ${userType}`
+                `User not found with username: ${username}`
             )
         }
         const isPasswordValid = bcrypt.compareSync(password, user.password);
         if (!isPasswordValid) {
             throw new HttpException(
                 HttpStatus.UNAUTHORIZED,
-                `Invalid password for username: ${username} and userType: ${userType}`
+                `Invalid password for username: ${username}`
             )
         }
         const token = jwtService.generateToken({ id: user._id, username: user.username, userType: user.userType });

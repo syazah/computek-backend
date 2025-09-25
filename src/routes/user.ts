@@ -5,7 +5,7 @@ import { adminMiddleware } from "../middlewares/admin.js";
 
 const userRouter = Router()
 
-userRouter.get("/:userType", authMiddleware, adminMiddleware, getUserBasedOnUserType)
-userRouter.post("/:userType/create", authMiddleware, adminMiddleware, createUserBasedOnUserType)
+userRouter.get("/:userType", adminMiddleware, getUserBasedOnUserType)
+userRouter.post("/:userType/create", adminMiddleware, createUserBasedOnUserType)
 
 export default userRouter;

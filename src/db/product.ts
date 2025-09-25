@@ -1,6 +1,4 @@
-import { CostItem, PageSize, PaperConfig, Product } from "../schema/Product.js"
-import type { ICostItem, IPageSize, IPaperConfig, IProduct } from "../validations/ProductValidations.js"
-
+import type { Model } from "mongoose"
 export class ProductDB {
     private static instance: ProductDB
     private constructor() { }
@@ -12,53 +10,32 @@ export class ProductDB {
         return ProductDB.instance
     }
 
-    public async addPageSize(pageSize: IPageSize) {
-        const addedPage = await PageSize.create(pageSize)
-        if (!addedPage) {
-            throw new Error("Failed to add page size")
+    // Generic CRUD operations
+    public async create<T>(model: Model<T>, data: T): Promise<T> {
+        const created = await model.create(data)
+        if (!created) {
+            throw new Error(`Failed to create ${model.modelName}`)
         }
-        return addedPage
-    }
-    public async getAllPageSizes() {
-        const pageSizes = await PageSize.find()
-        return pageSizes
+        return created
     }
 
-    public async addPaperConfigs(paperConfig: IPaperConfig) {
-        const addedPaperConfig = await PaperConfig.create(paperConfig)
-        if (!addedPaperConfig) {
-            throw new Error("Failed to add paper config")
-        }
-        return addedPaperConfig
-    }
-    public async getAllPaperConfigs() {
-        const paperConfigs = await PaperConfig.find()
-        return paperConfigs
+    public async getAll<T>(model: Model<T>): Promise<T[]> {
+        return await model.find()
     }
 
-    public async addCostItem(costItem: ICostItem) {
-        const addedCostItem = await CostItem.create(costItem)
-        if (!addedCostItem) {
-            throw new Error("Failed to add cost item")
-        }
-        return addedCostItem
-    }
-    public async getAllCostItems() {
-        const costItems = await CostItem.find()
-        return costItems
+    public async getById<T>(model: Model<T>, id: string): Promise<T | null> {
+        return await model.findOne({ id })
     }
 
-    public async addProduct(product: IProduct) {
-        // Implementation for adding a product
-        const addedProduct = await Product.create(product)
-        if (!addedProduct) {
-            throw new Error("Failed to add product")
-        }
-        return addedProduct
+    public async deleteById<T>(model: Model<T>, id: string): Promise<T | null> {
+        return await model.findOneAndDelete({ id })
     }
-    public async getAllProducts() {
-        // Implementation for fetching all products
-        const products = await Product.find()
-        return products
+
+    public async updateById<T>(model: Model<T>, id: string, updatedData: Partial<T>): Promise<T | null> {
+        return await model.findOneAndUpdate(
+            { id },
+            { $set: updatedData },
+            { new: true }
+        )
     }
 }

@@ -39,23 +39,3 @@ export const orderValidationSchema = z.object({
 });
 
 export type IOrder = z.infer<typeof orderValidationSchema>;
-
-export interface PageSize {
-    name: string;
-    width: number; // in mm
-    height: number; // in mm
-}
-
-
-
-export interface CostBreakdown {
-    baseCost: number;
-    customCosts: Record<string, number>;
-    totalCost: number;
-    breakdown: Array<{
-        name: string;
-        amount: number;
-        calculation: string;
-    }>;
-}
-
