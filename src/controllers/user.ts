@@ -69,3 +69,33 @@ export const getUserBasedOnUserType = async (req: any, res: any) => {
     }
 }
 
+/**
+ * Get the authenticated user's information.
+ * @param req the request object
+ * @param res the response object
+ * @route GET /me
+ * @returns A JSON response with the authenticated user's information or an error message.
+ */
+export const getSingleUserInfo = async (req: any, res: any) => {
+    try {
+        const { username } = req.user;
+        const user = await userDB.getUserByUsername(username);
+        if (!user) {
+            throw new HttpException(
+                HttpStatus.NOT_FOUND,
+                `User not found with username: ${username}`
+            );
+        }
+        return res.status(HttpStatus.OK).json({
+            success: true,
+            message: "User info fetched successfully",
+            data: user
+        });
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Something went wrong while fetching user info ${error}`,
+        );
+    }
+}
+
