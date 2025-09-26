@@ -7,8 +7,12 @@ const orderDetailsSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    pageSize: {
-        type: String,
+    width: {
+        type: Number,
+        required: true,
+    },
+    height: {
+        type: Number,
         required: true,
     },
     quantity: {
@@ -50,6 +54,10 @@ const orderDetailsSchema = new mongoose.Schema({
     additionalNote: {
         type: String,
         required: true
+    },
+    quality: {
+        type: Number,
+        required: true,
     }
 })
 
@@ -70,7 +78,7 @@ const billingDetailsSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    fileUrl:{
+    fileUrl: {
         type: String,
     }
 })

@@ -6,10 +6,12 @@ import { OrderDB } from "../db/order.js";
 import { successResponse } from "../services/responses/successResponse.js";
 import { AWSHelper } from "../services/aws/client.js";
 import mongoose from "mongoose";
+import { ImageManager } from "../services/image/client.js";
+import type { IImageValidations } from "../validations/ImageServiceValidations.js";
 
 const orderDB = OrderDB.getInstance();
 const awsHelper = AWSHelper.getInstance();
-
+const imageManager = ImageManager.getInstance();
 export const createOrder = async (req: any, res: any) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -31,8 +33,26 @@ export const createOrder = async (req: any, res: any) => {
             throw new HttpException(HttpStatus.BAD_REQUEST, `File is required`);
         }
 
+        const imageValidationData: IImageValidations = await imageManager.validateImageDimensions(
+            file.buffer,
+            (validate.data.orderDetails as IOrderDetails).width,
+            (validate.data.orderDetails as IOrderDetails).height,
+        )
+        if (imageValidationData.isValid === false) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, `Image dimensions are invalid. Expected: ${imageValidationData.expectedDimensions.width}x${imageValidationData.expectedDimensions.height}, Actual: ${imageValidationData.actualDimensions.width}x${imageValidationData.actualDimensions.height}`);
+        }
+        if (imageValidationData.metadata.format !== "jpeg" && imageValidationData.metadata.format !== "png" && imageValidationData.metadata.format !== "jpg") {
+            throw new HttpException(HttpStatus.BAD_REQUEST, `Only JPEG and PNG formats are allowed. Uploaded format: ${imageValidationData.metadata.format}`);
+        }
+        const orderData = {
+            ...validate.data,
+            orderDetails: {
+                ...validate.data.orderDetails,
+                quality: imageValidationData.metadata.density
+            }
+        }
         // 2️⃣ Create order (inside transaction)
-        const addedData = await orderDB.addOrder(validate.data, { session });
+        const addedData = await orderDB.addOrder(orderData, { session });
         if (!addedData) {
             throw new HttpException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -41,12 +61,12 @@ export const createOrder = async (req: any, res: any) => {
         }
 
         // 3️⃣ Upload to S3 (outside DB transaction, but inside try/catch)
-        const fileName = `${user.username}-${Date.now()}-${file.originalname}`;
+        const fileName = `${addedData._id}-${Date.now()}-${file.originalname}`;
         const fileUrl = await awsHelper.uploadFile(
             fileName,
             file.buffer,
             file.mimetype,
-            "orders-computek-aws"
+            `orders-computek-aws/${user.username}`
         );
 
         if (!fileUrl) {

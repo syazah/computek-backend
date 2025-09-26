@@ -4,7 +4,8 @@ import { OrderStatus, PaymentType } from "../enums/OrderEnum.js";
 // Zod schema for orderDetails
 export const orderDetailsValidationSchema = z.object({
     productType: z.string("Product type is required"),
-    productSize: z.string("Product size is required"),
+    width: z.number("Product width is required"),
+    height: z.number("Product height is required"),
     quantity: z.number("Quantity is required"),
     paperType: z.string("Paper type is required"),
     printingSide: z.string("Printing side is required"),
@@ -14,7 +15,7 @@ export const orderDetailsValidationSchema = z.object({
     foilType: z.string("Foil type is required"),
     dieType: z.string("Die type is required"),
     textureType: z.string("Texture type is required"),
-    additionalNote: z.string("Additional note is required"),
+    additionalNote: z.string("Additional note is required")
 });
 
 export type IOrderDetails = z.infer<typeof orderDetailsValidationSchema>;
