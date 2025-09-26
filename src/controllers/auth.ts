@@ -1,9 +1,10 @@
 import { HttpStatus } from "http-status-ts"
-import { HttpException } from "../services/ErrorHandling/HttpException.js"
+import { HttpException } from "../services/responses/HttpException.js"
 import { AuthSchema } from "../validations/AuthValidations.js";
 import bcrypt from "bcrypt";
 import { UserDB } from "../db/user.js";
 import { JWT } from "../services/JWT/jwt.js";
+import { successResponse } from "../services/responses/successResponse.js";
 
 const userDB = UserDB.getInstance();
 const jwtService = JWT.getInstance();
@@ -42,13 +43,9 @@ export const loginUser = async (req: any, res: any) => {
         }
         const token = jwtService.generateToken({ id: user._id, username: user.username, userType: user.userType });
 
-        return res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Login successful",
-            data: {
-                token
-            }
-        })
+        return res.status(HttpStatus.OK).json(successResponse({
+            token
+        }, "User logged in successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,

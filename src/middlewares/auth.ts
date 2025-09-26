@@ -1,5 +1,5 @@
 import { HttpStatus } from "http-status-ts";
-import { HttpException } from "../services/ErrorHandling/HttpException.js";
+import { HttpException } from "../services/responses/HttpException.js";
 import { JWT } from "../services/JWT/jwt.js";
 
 const jwtService = JWT.getInstance();

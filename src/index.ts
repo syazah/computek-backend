@@ -2,7 +2,7 @@ import express from "express"
 import dotenv from "dotenv"
 import mongoose from "mongoose"
 import routes from "./routes.js";
-import { globalErrorHandler } from "./services/ErrorHandling/globalErrorHandler.js";
+import { globalErrorHandler } from "./services/responses/globalErrorHandler.js";
 import cors from "cors"
 
 dotenv.config();

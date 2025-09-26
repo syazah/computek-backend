@@ -1,9 +1,10 @@
 import { HttpStatus } from "http-status-ts"
-import { HttpException } from "../services/ErrorHandling/HttpException.js"
+import { HttpException } from "../services/responses/HttpException.js"
 import { ProductDB } from "../db/product.js"
 import { costItemValidationSchema, pageSizeValidationSchema, paperConfigValidationSchema, ProductValidationSchema, type IProduct } from "../validations/ProductValidations.js"
 import { CostItem, PageSize, PaperConfig, Product } from "../schema/Product.js"
 import mongoose from "mongoose"
+import { successResponse } from "../services/responses/successResponse.js"
 
 const productService = ProductDB.getInstance()
 
@@ -15,11 +16,7 @@ export const addPageSize = async (req: any, res: any) => {
             throw new HttpException(HttpStatus.BAD_REQUEST, "Invalid page size data")
         }
         const addedPageSize = await productService.create(PageSize, validation.data)
-        res.status(HttpStatus.CREATED).json({
-            success: true,
-            message: "Page size added successfully",
-            data: addedPageSize
-        })
+        res.status(HttpStatus.CREATED).json(successResponse(addedPageSize, "Page size added successfully"))
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -31,11 +28,7 @@ export const addPageSize = async (req: any, res: any) => {
 export const getAllPageSizes = async (req: any, res: any) => {
     try {
         const pageSizes = await productService.getAll(PageSize)
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Page sizes fetched successfully",
-            data: pageSizes
-        })
+        res.status(HttpStatus.OK).json(successResponse(pageSizes, "Page sizes fetched successfully"))
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -51,11 +44,7 @@ export const getPageSizeFromPageId = async (req: any, res: any) => {
         if (!pageSize) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Page size not found with ID: ${pageSizeId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Page size fetched successfully",
-            data: pageSize
-        });
+        res.status(HttpStatus.OK).json(successResponse(pageSize, "Page size fetched successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -71,11 +60,7 @@ export const deletePageSize = async (req: any, res: any) => {
         if (!deletedPageSize) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Page size not found with ID: ${pageSizeId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Page size deleted successfully",
-            data: deletedPageSize
-        });
+        res.status(HttpStatus.OK).json(successResponse(deletedPageSize, "Page size deleted successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -96,11 +81,7 @@ export const updatePageSize = async (req: any, res: any) => {
         if (!updatedPageSize) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Page size not found with ID: ${pageSizeId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Page size updated successfully",
-            data: updatedPageSize
-        });
+        res.status(HttpStatus.OK).json(successResponse(updatedPageSize, "Page size updated successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -118,11 +99,7 @@ export const addPaperConfig = async (req: any, res: any) => {
             throw new HttpException(HttpStatus.BAD_REQUEST, "Invalid paper config data")
         }
         const addedPaperConfig = await productService.create(PaperConfig, validation.data)
-        res.status(HttpStatus.CREATED).json({
-            success: true,
-            message: "Paper config added successfully",
-            data: addedPaperConfig
-        })
+        res.status(HttpStatus.CREATED).json(successResponse(addedPaperConfig, "Paper config added successfully"))
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -133,11 +110,7 @@ export const addPaperConfig = async (req: any, res: any) => {
 export const getAllPaperConfigs = async (req: any, res: any) => {
     try {
         const paperConfigs = await productService.getAll(PaperConfig);
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Paper configs fetched successfully",
-            data: paperConfigs
-        })
+        res.status(HttpStatus.OK).json(successResponse(paperConfigs, "Paper configs fetched successfully"))
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -152,11 +125,7 @@ export const getPaperConfigFromPaperId = async (req: any, res: any) => {
         if (!paperConfig) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Paper config not found with ID: ${paperConfigId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Paper config fetched successfully",
-            data: paperConfig
-        });
+        res.status(HttpStatus.OK).json(successResponse(paperConfig, "Paper config fetched successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -171,11 +140,7 @@ export const deletePaperConfig = async (req: any, res: any) => {
         if (!deletedPaperConfig) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Paper config not found with ID: ${paperConfigId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Paper config deleted successfully",
-            data: deletedPaperConfig
-        });
+        res.status(HttpStatus.OK).json(successResponse(deletedPaperConfig, "Paper config deleted successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -195,11 +160,7 @@ export const updatePaperConfig = async (req: any, res: any) => {
         if (!updatedPaperConfig) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Paper config not found with ID: ${paperConfigId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Paper config updated successfully",
-            data: updatedPaperConfig
-        });
+        res.status(HttpStatus.OK).json(successResponse(updatedPaperConfig, "Paper config updated successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -217,11 +178,7 @@ export const addCostItem = async (req: any, res: any) => {
             throw new HttpException(HttpStatus.BAD_REQUEST, `Invalid cost item data: ${validation.error.message}`)
         }
         const addedCostItem = await productService.create(CostItem, validation.data)
-        res.status(HttpStatus.CREATED).json({
-            success: true,
-            message: "Cost item added successfully",
-            data: addedCostItem
-        })
+        res.status(HttpStatus.CREATED).json(successResponse(addedCostItem, "Cost item added successfully"))
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -232,11 +189,7 @@ export const addCostItem = async (req: any, res: any) => {
 export const getAllCostItems = async (req: any, res: any) => {
     try {
         const costItems = await productService.getAll(CostItem);
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Cost items fetched successfully",
-            data: costItems
-        })
+        res.status(HttpStatus.OK).json(successResponse(costItems, "Cost items fetched successfully"))
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -251,11 +204,7 @@ export const getCostItemFromCostId = async (req: any, res: any) => {
         if (!costItem) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Cost item not found with ID: ${costItemId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Cost item fetched successfully",
-            data: costItem
-        });
+        res.status(HttpStatus.OK).json(successResponse(costItem, "Cost item fetched successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -270,11 +219,7 @@ export const deleteCostItem = async (req: any, res: any) => {
         if (!deletedCostItem) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Cost item not found with ID: ${costItemId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Cost item deleted successfully",
-            data: deletedCostItem
-        });
+        res.status(HttpStatus.OK).json(successResponse(deletedCostItem, "Cost item deleted successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -294,11 +239,7 @@ export const updateCostItem = async (req: any, res: any) => {
         if (!updatedCostItem) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Cost item not found with ID: ${costItemId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Cost item updated successfully",
-            data: updatedCostItem
-        });
+        res.status(HttpStatus.OK).json(successResponse(updatedCostItem, "Cost item updated successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -322,11 +263,7 @@ export const addProduct = async (req: any, res: any) => {
             costItems: validation.data.costItems?.map(id => new mongoose.Types.ObjectId(id)) || []
         };
         const addedProduct = await productService.create(Product, productData)
-        res.status(HttpStatus.CREATED).json({
-            success: true,
-            message: "Product added successfully",
-            data: addedProduct
-        })
+        res.status(HttpStatus.CREATED).json(successResponse(addedProduct, "Product added successfully"))
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -338,11 +275,7 @@ export const addProduct = async (req: any, res: any) => {
 export const getAllProducts = async (req: any, res: any) => {
     try {
         const products = await productService.getAll(Product);
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Products fetched successfully",
-            data: products
-        })
+        res.status(HttpStatus.OK).json(successResponse(products, "Products fetched successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -358,11 +291,7 @@ export const getProductFromProductId = async (req: any, res: any) => {
         if (!product) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Product not found with ID: ${productId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Product fetched successfully",
-            data: product
-        });
+        res.status(HttpStatus.OK).json(successResponse(product, "Product fetched successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -377,11 +306,7 @@ export const deleteProduct = async (req: any, res: any) => {
         if (!deletedProduct) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Product not found with ID: ${productId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Product deleted successfully",
-            data: deletedProduct
-        });
+        res.status(HttpStatus.OK).json(successResponse(deletedProduct, "Product deleted successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -407,11 +332,7 @@ export const updateProduct = async (req: any, res: any) => {
         if (!updatedProduct) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Product not found with ID: ${productId}`);
         }
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Product updated successfully",
-            data: updatedProduct
-        });
+        res.status(HttpStatus.OK).json(successResponse(updatedProduct, "Product updated successfully"));
     }
     catch (error) {
         throw new HttpException(

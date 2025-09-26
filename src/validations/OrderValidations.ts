@@ -23,7 +23,7 @@ export type IOrderDetails = z.infer<typeof orderDetailsValidationSchema>;
 export const billingDetailsValidationSchema = z.object({
     amount: z.number("Amount is required"),
     proof: z.string("Proof is required"),
-    paymentType: z.nativeEnum(PaymentType),
+    paymentType: z.enum(PaymentType),
     transactionId: z.string("Transaction ID is required"),
 });
 
@@ -33,8 +33,9 @@ export type IBillingDetails = z.infer<typeof billingDetailsValidationSchema>;
 export const orderValidationSchema = z.object({
     raisedBy: z.string("Raised by is required"), // Assuming ObjectId is represented as a string
     raisedTo: z.string("Raised to is required"), // Assuming ObjectId is represented as a string
-    currentStatus: z.nativeEnum(OrderStatus).default(OrderStatus.PENDING),
+    currentStatus: z.enum(OrderStatus).default(OrderStatus.PENDING),
     orderDetails: orderDetailsValidationSchema,
+    fileUrl: z.url("Invalid URL format").optional(),
     billingDetails: billingDetailsValidationSchema.optional(),
 });
 

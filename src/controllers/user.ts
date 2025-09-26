@@ -1,8 +1,9 @@
-import { HttpException } from "../services/ErrorHandling/HttpException.js"
+import { HttpException } from "../services/responses/HttpException.js"
 import { HttpStatus } from "http-status-ts"
 import { UserSchema } from "../validations/UserValidations.js"
 import { UserDB } from "../db/user.js";
 import type { UserEnum } from "../enums/UserEnum.js";
+import { successResponse } from "../services/responses/successResponse.js";
 
 const userDB = UserDB.getInstance();
 
@@ -26,11 +27,7 @@ export const createUserBasedOnUserType = async (req: any, res: any) => {
         const user = parseResult.data;
         const userType: UserEnum = req.params.userType;
         const createdUser = await userDB.createUser(user, userType);
-        return res.status(HttpStatus.CREATED).json({
-            success: true,
-            message: "User Created Successfully",
-            data: { email: createdUser.email, username: createdUser.username, userType: createdUser.userType }
-        })
+        return res.status(HttpStatus.CREATED).json(successResponse({ email: createdUser.email, username: createdUser.username, userType: createdUser.userType }, "User created successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -56,11 +53,7 @@ export const getUserBasedOnUserType = async (req: any, res: any) => {
                 `No users found for userType: ${userType}`
             );
         }
-        return res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Users fetched successfully",
-            data: users
-        });
+        return res.status(HttpStatus.OK).json(successResponse(users, "Users fetched successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -86,11 +79,7 @@ export const getSingleUserInfo = async (req: any, res: any) => {
                 `User not found with username: ${username}`
             );
         }
-        return res.status(HttpStatus.OK).json({
-            success: true,
-            message: "User info fetched successfully",
-            data: user
-        });
+        return res.status(HttpStatus.OK).json(successResponse({ email: user.email, username: user.username, userType: user.userType }, "User info fetched successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,

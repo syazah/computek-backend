@@ -69,6 +69,9 @@ const billingDetailsSchema = new mongoose.Schema({
     transactionId: {
         type: String,
         required: true,
+    },
+    fileUrl:{
+        type: String,
     }
 })
 

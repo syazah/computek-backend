@@ -1,5 +1,5 @@
 import { HttpStatus } from "http-status-ts";
-import { HttpException } from "../services/ErrorHandling/HttpException.js";
+import { HttpException } from "../services/responses/HttpException.js";
 
 export const clientMiddleware = (req: any, res: any, next: any) => {
     try {
