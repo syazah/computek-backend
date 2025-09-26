@@ -8,10 +8,24 @@ import { AWSHelper } from "../services/aws/client.js";
 import mongoose from "mongoose";
 import { ImageManager } from "../services/image/client.js";
 import type { IImageValidations } from "../validations/ImageServiceValidations.js";
+import { OrderStatus } from "../enums/OrderEnum.js";
 
 const orderDB = OrderDB.getInstance();
 const awsHelper = AWSHelper.getInstance();
 const imageManager = ImageManager.getInstance();
+
+/**
+ * Create a new order
+ * 1. Validate request body and file
+ *  1.1 Validate image dimensions and format
+ *  1.2 Validate order details
+ * 2. Create order in DB (inside transaction)
+ * 3. Upload file to S3 (outside transaction)
+ * 4. Update order with file URL (inside transaction)
+ * 5. Commit transaction
+ * 
+ * On any failure, rollback DB changes and delete uploaded file from S3
+ */
 export const createOrder = async (req: any, res: any) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -49,7 +63,8 @@ export const createOrder = async (req: any, res: any) => {
             orderDetails: {
                 ...validate.data.orderDetails,
                 quality: imageValidationData.metadata.density
-            }
+            },
+            currentStatus: OrderStatus.PENDING,
         }
         // 2️⃣ Create order (inside transaction)
         const addedData = await orderDB.addOrder(orderData, { session });
@@ -120,6 +135,12 @@ export const createOrder = async (req: any, res: any) => {
     }
 };
 
+/**
+ * Get order by ID
+ * 1. Fetch order from DB
+ * 2. If not found, throw 404
+ * 3. Return order
+ */
 export const getOrderById = async (req: any, res: any) => {
     try {
         const id = req.params.id;
@@ -139,6 +160,13 @@ export const getOrderById = async (req: any, res: any) => {
     }
 }
 
+/**
+ * Get order by ID for the logged in user
+ * 1. Fetch order from DB
+ * 2. If not found, throw 404
+ * 3. If order.raisedBy !== req.user.id and req.user.userType !== 'admin', throw 403
+ * 4. Return order
+ */
 export const getOrderByIdAndUser = async (req: any, res: any) => {
     try {
         const id = req.params.id;
@@ -165,6 +193,11 @@ export const getOrderByIdAndUser = async (req: any, res: any) => {
     }
 }
 
+/**
+ * Get all orders
+ * 1. Fetch all orders from DB
+ * 2. Return orders
+ */
 export const getAllOrders = async (req: any, res: any) => {
     try {
         const orders = await orderDB.getAllOrders();
