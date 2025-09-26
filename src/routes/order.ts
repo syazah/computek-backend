@@ -10,5 +10,6 @@ const upload = multer({ storage: storage })
 orderRouter.route("/").post(upload.single('file'), createOrder).get(adminMiddleware, getAllOrders)
 orderRouter.get("/:id", adminMiddleware, getOrderById)
 orderRouter.get("/:id/user", getOrderByIdAndUser)
+orderRouter.post("/:id/add-billing-info", upload.single('bill'), adminMiddleware, createOrder)
 
 export default orderRouter;

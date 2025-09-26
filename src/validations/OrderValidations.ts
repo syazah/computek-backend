@@ -23,7 +23,6 @@ export type IOrderDetails = z.infer<typeof orderDetailsValidationSchema>;
 // Zod schema for billingDetails
 export const billingDetailsValidationSchema = z.object({
     amount: z.number("Amount is required"),
-    proof: z.string("Proof is required"),
     paymentType: z.enum(PaymentType),
     transactionId: z.string("Transaction ID is required"),
 });

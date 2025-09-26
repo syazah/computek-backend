@@ -8,4 +8,5 @@ export enum OrderStatus {
 export enum PaymentType {
     UPI = "UPI",
     NET_BANKING = "NET_BANKING",
+    CASH = "CASH",
 }
