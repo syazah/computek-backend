@@ -36,7 +36,14 @@ const ProductSchema = new mongoose.Schema({
     costItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CostItem' }],
 })
 
+const SheetSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    width: { type: Number, required: true },
+    height: { type: Number, required: true },
+});
+
 export const PaperConfig = mongoose.model("PaperConfig", paperConfigSchema);
+export const Sheet = mongoose.model("Sheet", SheetSchema);
 export const PageSize = mongoose.model("PageSize", pageSizeSchema);
 export const CostItem = mongoose.model("CostItem", costItemSchema);
 export const Product = mongoose.model("Product", ProductSchema);

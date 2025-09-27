@@ -1,8 +1,8 @@
 import { HttpStatus } from "http-status-ts"
 import { HttpException } from "../services/responses/HttpException.js"
 import { ProductDB } from "../db/product.js"
-import { costItemValidationSchema, pageSizeValidationSchema, paperConfigValidationSchema, ProductValidationSchema, type IProduct } from "../validations/ProductValidations.js"
-import { CostItem, PageSize, PaperConfig, Product } from "../schema/Product.js"
+import { costItemValidationSchema, pageSizeValidationSchema, paperConfigValidationSchema, ProductValidationSchema, SheetValidationSchema, type IProduct } from "../validations/ProductValidations.js"
+import { CostItem, PageSize, PaperConfig, Product, Sheet } from "../schema/Product.js"
 import mongoose from "mongoose"
 import { successResponse } from "../services/responses/successResponse.js"
 
@@ -341,3 +341,39 @@ export const updateProduct = async (req: any, res: any) => {
         );
     }
 };
+
+
+//SHEETS
+export const getAllSheets = async (req: any, res: any) => {
+    try {
+        const sheets = await productService.getAll(Sheet);
+        res.status(HttpStatus.OK).json(successResponse(sheets, "Sheets fetched successfully"));
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Failed to fetch sheets: ${(error as Error).message}`
+        )
+    }
+}
+
+export const addSheet = async (req: any, res: any) => {
+    try {
+        const body = req.body;
+        const validation = SheetValidationSchema.safeParse(body);
+        if (!validation.success) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, "Invalid sheet data");
+        }
+        const sheetData = {
+            ...validation.data,
+            width: validation.data.width,
+            height: validation.data.height
+        };
+        const newSheet = await productService.create(Sheet, sheetData);
+        res.status(HttpStatus.CREATED).json(successResponse(newSheet, "Sheet added successfully"));
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Failed to add sheet: ${(error as Error).message}`
+        )
+    }
+}

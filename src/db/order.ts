@@ -39,7 +39,7 @@ export class OrderDB {
         return orders;
     }
 
-    public async updateOrder(id: string, data: Partial<IOrder>, session?: any) {
+    public async updateOrder(id: string, data: any, session?: any) {
         const updatedOrder = await Order.findByIdAndUpdate(id, data, { new: true, session });
         if (!updatedOrder) {
             throw new Error("Order not found or not updated");

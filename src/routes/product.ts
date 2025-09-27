@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { addCostItem, addPageSize, addPaperConfig, addProduct, deleteCostItem, deletePageSize, deletePaperConfig, deleteProduct, getAllCostItems, getAllPageSizes, getAllPaperConfigs, getAllProducts, getCostItemFromCostId, getPageSizeFromPageId, getPaperConfigFromPaperId, getProductFromProductId, updateCostItem, updatePageSize, updatePaperConfig, updateProduct } from "../controllers/product.js"
+import { addCostItem, addPageSize, addPaperConfig, addProduct, addSheet, deleteCostItem, deletePageSize, deletePaperConfig, deleteProduct, getAllCostItems, getAllPageSizes, getAllPaperConfigs, getAllProducts, getAllSheets, getCostItemFromCostId, getPageSizeFromPageId, getPaperConfigFromPaperId, getProductFromProductId, updateCostItem, updatePageSize, updatePaperConfig, updateProduct } from "../controllers/product.js"
 import { adminMiddleware } from "../middlewares/admin.js"
 
 const productRouter = Router()
@@ -18,6 +18,9 @@ productRouter.route("/cost-item/:costItemId").get(getCostItemFromCostId).delete(
 // PRODUCTS
 productRouter.route("/product").get(getAllProducts).post(adminMiddleware, addProduct)
 productRouter.route("/product/:productId").get(getProductFromProductId).delete(adminMiddleware, deleteProduct).put(adminMiddleware, updateProduct)
+
+//SHEETS
+productRouter.route("/sheets").get(getAllSheets).post(adminMiddleware, addSheet)
 
 
 

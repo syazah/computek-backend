@@ -31,8 +31,7 @@ export type IBillingDetails = z.infer<typeof billingDetailsValidationSchema>;
 
 // Zod schema for order
 export const orderValidationSchema = z.object({
-    raisedBy: z.string("Raised by is required"), // Assuming ObjectId is represented as a string
-    raisedTo: z.string("Raised to is required"), // Assuming ObjectId is represented as a string
+    raisedTo: z.string("Raised to is required").optional(), // Assuming ObjectId is represented as a string
     currentStatus: z.enum(OrderStatus).default(OrderStatus.PENDING),
     orderDetails: orderDetailsValidationSchema,
     fileUrl: z.url("Invalid URL format").optional(),

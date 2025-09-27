@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { createOrder, getAllOrders, getOrderById, getOrderByIdAndUser } from "../controllers/order.js";
+import { addBillingInfoToOrder, createOrder, getAllOrders, getOrderById, getOrderByIdAndUser } from "../controllers/order.js";
 import { adminMiddleware } from "../middlewares/admin.js";
 
 const orderRouter = Router()
@@ -10,6 +10,6 @@ const upload = multer({ storage: storage })
 orderRouter.route("/").post(upload.single('file'), createOrder).get(adminMiddleware, getAllOrders)
 orderRouter.get("/:id", adminMiddleware, getOrderById)
 orderRouter.get("/:id/user", getOrderByIdAndUser)
-orderRouter.post("/:id/add-billing-info", upload.single('bill'), adminMiddleware, createOrder)
+orderRouter.post("/:id/add-billing-info", upload.single('bill'), adminMiddleware, addBillingInfoToOrder)
 
 export default orderRouter;

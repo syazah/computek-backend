@@ -35,6 +35,14 @@ export const costItemValidationSchema = z.object({
 
 export type ICostItem = z.infer<typeof costItemValidationSchema>;
 
+export const SheetValidationSchema = z.object({
+    name: z.string("Sheet name is required").toUpperCase(),
+    width: z.number("Width is required"),
+    height: z.number("Height is required"),
+});
+
+export type ISheet = z.infer<typeof SheetValidationSchema>;
+
 const objectIdSchema = z.string().refine((val) => {
     return /^[0-9a-fA-F]{24}$/.test(val);
 }, {

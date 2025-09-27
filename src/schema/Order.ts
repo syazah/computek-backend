@@ -58,6 +58,9 @@ const orderDetailsSchema = new mongoose.Schema({
     quality: {
         type: Number,
         required: true,
+    },
+    fileUrl: {
+        type: String,
     }
 })
 
@@ -77,9 +80,6 @@ const billingDetailsSchema = new mongoose.Schema({
     transactionId: {
         type: String,
         required: true,
-    },
-    fileUrl: {
-        type: String,
     }
 })
 
@@ -92,7 +92,6 @@ const orderSchema = new mongoose.Schema({
     raisedTo: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
     },
     currentStatus: {
         type: String,
