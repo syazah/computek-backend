@@ -26,14 +26,8 @@ const imageManager = ImageManager.getInstance();
  * On any failure, rollback DB changes and delete uploaded file from S3
  */
 export const createOrder = async (req: any, res: any) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     let addedData: any = null; // Declare at function scope
-    let fileName: string | null = null; // Track filename for cleanup
-    let bucketName: string | null = null; // Track bucket name for cleanup
-
     try {
-        const file = req.file;
         const user = req.user;
         const body = req.body;
 
@@ -45,41 +39,55 @@ export const createOrder = async (req: any, res: any) => {
                 `Validation failed: ${validate.error.message}`
             );
         }
-        if (!file) {
-            throw new HttpException(HttpStatus.BAD_REQUEST, `File is required`);
-        }
-
-        const imageValidationData: IImageValidations = await imageManager.validateImageDimensions(
-            file.buffer,
-            (validate.data.orderDetails as IOrderDetails).width,
-            (validate.data.orderDetails as IOrderDetails).height,
-        )
-        if (imageValidationData.isValid === false) {
-            throw new HttpException(HttpStatus.BAD_REQUEST, `Image dimensions are invalid. Expected: ${imageValidationData.expectedDimensions.width}x${imageValidationData.expectedDimensions.height}, Actual: ${imageValidationData.actualDimensions.width}x${imageValidationData.actualDimensions.height}`);
-        }
-        if (imageValidationData.metadata.format !== "jpeg" && imageValidationData.metadata.format !== "png" && imageValidationData.metadata.format !== "jpg") {
-            throw new HttpException(HttpStatus.BAD_REQUEST, `Only JPEG and PNG formats are allowed. Uploaded format: ${imageValidationData.metadata.format}`);
-        }
         const orderData = {
             ...validate.data,
-            orderDetails: {
-                ...validate.data.orderDetails,
-                quality: imageValidationData.metadata.density
-            },
             currentStatus: OrderStatus.PENDING,
+            raisedBy: user.id,
         }
         // 2️⃣ Create order (inside transaction)
-        addedData = await orderDB.addOrder(orderData, { session });
+        addedData = await orderDB.addOrder(orderData);
         if (!addedData) {
             throw new HttpException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Order not created, something went wrong in the database"
             );
         }
+        return res.status(HttpStatus.CREATED).json(
+            successResponse(
+                {
+                    id: addedData._id,
+                    currentStatus: addedData.currentStatus,
+                },
+                "Order created successfully"
+            )
+        );
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Order creation failed: ${error}`
+        );
+    }
+};
 
-        // 3️⃣ Upload to S3 (outside DB transaction, but inside try/catch)
-        bucketName = `orders-computek-aws/${user.username}/${addedData._id}`
-        fileName = `${Date.now()}-${file.originalname}`;
+export const uploadOrderFile = async (req: any, res: any) => {
+    let fileName: string | null = null; // Track filename for cleanup
+    let bucketName: string | null = null; // Track bucket name for cleanup
+    try {
+        const file = req.file;
+        const user = req.user;
+        if (!file) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, `File is required`);
+        }
+
+        const imageValidationData: IImageValidations = await imageManager.getImageDimensions(
+            file.buffer
+        );
+        if (imageValidationData.metadata.format !== "jpeg" && imageValidationData.metadata.format !== "png" && imageValidationData.metadata.format !== "jpg") {
+            throw new HttpException(HttpStatus.BAD_REQUEST, `Only JPEG and PNG formats are allowed. Uploaded format: ${imageValidationData.metadata.format}`);
+        }
+        bucketName = `orders-computek-aws`
+        console.log("uploading")
+        fileName = `${user.username}-${Date.now()}-${file.originalname}`;
         const fileUrl = await awsHelper.uploadFile(
             fileName,
             file.buffer,
@@ -90,51 +98,14 @@ export const createOrder = async (req: any, res: any) => {
         if (!fileUrl) {
             throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, `File upload failed`);
         }
-
-        // 4️⃣ Update order with file URL (inside transaction)
-        const updatedData = await orderDB.updateOrder(
-            addedData._id.toString(),
-            { raisedBy: user.id, fileUrl: fileUrl },
-            { session }
-        );
-        if (!updatedData) {
-            throw new HttpException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Order not updated with file URL"
-            );
-        }
-
-        // ✅ Commit transaction
-        await session.commitTransaction();
-        session.endSession();
-
-        return res.status(HttpStatus.CREATED).json(
-            successResponse(
-                {
-                    id: addedData._id,
-                    currentStatus: addedData.currentStatus,
-                    fileUrl: fileUrl,
-                },
-                "Order created successfully"
-            )
-        );
+        return res.status(HttpStatus.OK).json(successResponse({ fileUrl, imageValidationData }, "File uploaded successfully"));
     } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        if (fileName && bucketName) {
-            try {
-                await awsHelper.deleteFile(fileName, bucketName);
-            } catch (cleanupError) {
-                console.error("Failed to cleanup S3 file:", cleanupError);
-            }
-        }
-
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
-            `Order creation failed: ${error}`
-        );
+            `File upload failed: ${error}`,
+        )
     }
-};
+}
 
 /**
  * Get order by ID
@@ -220,10 +191,6 @@ export const getAllOrders = async (req: any, res: any) => {
  * 5. Return updated order
  */
 export const addBillingInfoToOrder = async (req: any, res: any) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    let bucketName = `orders-computek-aws/${req.user.username}/${req.params.id}`
-    let fileName = `${Date.now()}-billingInfo`;
     try {
         const id = req.params.id;
         const order = await orderDB.getOrderById(id)
@@ -240,6 +207,27 @@ export const addBillingInfoToOrder = async (req: any, res: any) => {
                 `Validation failed: ${validate.error.message}`
             );
         }
+        const updatedOrder = await orderDB.updateOrder(id, { billingDetails: validate.data, currentStatus: OrderStatus.ACTIVE });
+
+        if (!updatedOrder) {
+            throw new HttpException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Order not updated with billing info"
+            );
+        }
+        return res.status(HttpStatus.OK).json(successResponse(updatedOrder, "Billing info added successfully"));
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Adding billing info failed: ${error}`,
+        )
+    }
+}
+
+export const uploadBillingProof = async (req: any, res: any) => {
+    try {
+        let bucketName = `orders-computek-aws`
+        let fileName = `${req.user.username}-${Date.now()}-billingInfo`;
         const file = req.file;
         if (!file) {
             throw new HttpException(HttpStatus.BAD_REQUEST, `File is required`);
@@ -253,31 +241,11 @@ export const addBillingInfoToOrder = async (req: any, res: any) => {
         if (!fileUrl) {
             throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, `File upload failed`);
         }
-        const updatedData = { ...validate.data, proof: fileUrl };
-        const updatedOrder = await orderDB.updateOrder(id, { billingDetails: updatedData, currentStatus: OrderStatus.ACTIVE }, { session });
-
-        if (!updatedOrder) {
-            throw new HttpException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Order not updated with billing info"
-            );
-        }
-        await session.commitTransaction();
-        session.endSession();
-        return res.status(HttpStatus.OK).json(successResponse(updatedOrder, "Billing info added successfully"));
+        return res.status(HttpStatus.OK).json(successResponse({ fileUrl }, "File uploaded successfully"));
     } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        if (fileName && bucketName) {
-            try {
-                await awsHelper.deleteFile(fileName, bucketName);
-            } catch (cleanupError) {
-                console.error("Failed to cleanup S3 file:", cleanupError);
-            }
-        }
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
-            `Adding billing info failed: ${error}`,
+            `File upload failed: ${error}`,
         )
     }
 }

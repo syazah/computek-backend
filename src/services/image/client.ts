@@ -12,19 +12,14 @@ export class ImageManager {
         return ImageManager.instance;
     }
 
-    public validateImageDimensions = async (fileBuffer: Buffer, expectedWidth: number, expectedHeight: number, tolerance: number = 10): Promise<IImageValidations> => {
+    public getImageDimensions = async (fileBuffer: Buffer, tolerance: number = 10): Promise<IImageValidations> => {
         try {
             const metadata = await sharp(fileBuffer).metadata();
             if (!metadata.width || !metadata.height) {
                 throw new Error("Unable to retrieve image dimensions");
             }
-            const widthDiff = Math.abs(metadata.width - expectedWidth);
-            const heightDiff = Math.abs(metadata.height - expectedHeight);
-            const isValidDimensions = widthDiff <= tolerance && heightDiff <= tolerance;
             return {
-                isValid: isValidDimensions,
                 actualDimensions: { width: metadata.width, height: metadata.height },
-                expectedDimensions: { width: expectedWidth, height: expectedHeight },
                 metadata: {
                     format: metadata.format || undefined,
                     size: metadata.size || -1,

@@ -3,7 +3,8 @@ import { OrderStatus, PaymentType } from "../enums/OrderEnum.js";
 
 // Zod schema for orderDetails
 export const orderDetailsValidationSchema = z.object({
-    productType: z.string("Product type is required"),
+    productName: z.string("Product type is required"),
+    paperConfig: z.string("Paper configuration is required"),
     width: z.number("Product width is required"),
     height: z.number("Product height is required"),
     quantity: z.number("Quantity is required"),
@@ -15,7 +16,9 @@ export const orderDetailsValidationSchema = z.object({
     foilType: z.string("Foil type is required"),
     dieType: z.string("Die type is required"),
     textureType: z.string("Texture type is required"),
-    additionalNote: z.string("Additional note is required")
+    additionalNote: z.string("Additional note is required"),
+    fileUrl: z.url("Invalid URL format"),
+    quality: z.number("Image quality is required"),
 });
 
 export type IOrderDetails = z.infer<typeof orderDetailsValidationSchema>;
@@ -25,16 +28,16 @@ export const billingDetailsValidationSchema = z.object({
     amount: z.number("Amount is required"),
     paymentType: z.enum(PaymentType),
     transactionId: z.string("Transaction ID is required"),
+    proof: z.url("Invalid URL format"),
 });
 
 export type IBillingDetails = z.infer<typeof billingDetailsValidationSchema>;
 
 // Zod schema for order
 export const orderValidationSchema = z.object({
-    raisedTo: z.string("Raised to is required").optional(), // Assuming ObjectId is represented as a string
+    raisedTo: z.string("Raised to is required").optional(),
     currentStatus: z.enum(OrderStatus).default(OrderStatus.PENDING),
     orderDetails: orderDetailsValidationSchema,
-    fileUrl: z.url("Invalid URL format").optional(),
     billingDetails: billingDetailsValidationSchema.optional(),
 });
 

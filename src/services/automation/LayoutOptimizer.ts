@@ -113,6 +113,10 @@ export class LayoutOptimizer {
         const efficiency = (totalUsedArea / (workingWidth * workingHeight)) * 100;
 
         return {
+            sheetDetails: {
+                sheetWidth,
+                sheetHeight,
+            },
             placedItems,
             efficiency,
             unusedArea: (workingWidth * workingHeight) - totalUsedArea

@@ -24,16 +24,16 @@ export class ProductDB {
     }
 
     public async getById<T>(model: Model<T>, id: string): Promise<T | null> {
-        return await model.findOne({ id })
+        return await model.findOne({ _id: id })
     }
 
     public async deleteById<T>(model: Model<T>, id: string): Promise<T | null> {
-        return await model.findOneAndDelete({ id })
+        return await model.findOneAndDelete({ _id: id })
     }
 
     public async updateById<T>(model: Model<T>, id: string, updatedData: Partial<T>): Promise<T | null> {
         return await model.findOneAndUpdate(
-            { id },
+            { _id: id },
             { $set: updatedData },
             { new: true }
         )
