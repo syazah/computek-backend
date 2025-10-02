@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
-    "start": "ts-node src/index.ts"
+    "start": "node src/index.js"
   },
   "keywords": [],
   "author": "syazah",
