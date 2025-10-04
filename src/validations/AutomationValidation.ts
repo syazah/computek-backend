@@ -13,4 +13,6 @@ export const AutomationValidation = z.object({
     }).optional().default({ top: 0, bottom: 0, left: 0, right: 0 })
 })
 
+//2 - order 11/13 12/14
+
 export type AutomationRequest = z.infer<typeof AutomationValidation>;

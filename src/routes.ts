@@ -11,7 +11,7 @@ const routes = Router();
 
 routes.use("/v1/user", authMiddleware, userRouter)
 routes.use("/v1/auth", authRouter)
-routes.use("/v1/product", authMiddleware, productRouter)
+routes.use("/v1/products", authMiddleware, productRouter)
 routes.use("/v1/order", authMiddleware, orderRouter)
 routes.use("/v1/automate", authMiddleware, adminMiddleware, automationRouter)
 

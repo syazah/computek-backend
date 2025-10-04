@@ -5,6 +5,7 @@ import { costItemValidationSchema, pageSizeValidationSchema, paperConfigValidati
 import { CostItem, PageSize, PaperConfig, Product, Sheet } from "../schema/Product.js"
 import mongoose from "mongoose"
 import { successResponse } from "../services/responses/successResponse.js"
+import { Applicability, CostItemEnum } from "../enums/ProductEnum.js"
 
 const productService = ProductDB.getInstance()
 
@@ -186,6 +187,31 @@ export const addCostItem = async (req: any, res: any) => {
         )
     }
 }
+
+export const getApplicability = async (req: any, res: any) => {
+    try {
+        const applicabilityOptions = Object.values(Applicability);
+        res.status(HttpStatus.OK).json(successResponse(applicabilityOptions, "Applicability options fetched successfully"));
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Failed to fetch applicability options: ${(error as Error).message}`
+        );
+    }
+}
+
+export const getCostItemEnums = async (req: any, res: any) => {
+    try {
+        const costItemEnums = Object.values(CostItemEnum);
+        res.status(HttpStatus.OK).json(successResponse(costItemEnums, "Cost item enums fetched successfully"));
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Failed to fetch cost item enums: ${(error as Error).message}`
+        );
+    }
+}
+
 export const getAllCostItems = async (req: any, res: any) => {
     try {
         const costItems = await productService.getAll(CostItem);

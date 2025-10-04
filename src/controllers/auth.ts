@@ -44,7 +44,12 @@ export const loginUser = async (req: any, res: any) => {
         const token = jwtService.generateToken({ id: user._id, username: user.username, userType: user.userType });
 
         return res.status(HttpStatus.OK).json(successResponse({
-            token
+            token, user: {
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                userType: user.userType
+            }
         }, "User logged in successfully"));
     } catch (error) {
         throw new HttpException(

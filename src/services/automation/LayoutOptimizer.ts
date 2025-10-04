@@ -1,4 +1,6 @@
+import { HttpStatus } from "http-status-ts";
 import type { LayoutItem, PlacedItem } from "../../validations/LayoutValidations.js";
+import { HttpException } from "../responses/HttpException.js";
 
 export class LayoutOptimizer {
     private static instance: LayoutOptimizer;
@@ -121,5 +123,78 @@ export class LayoutOptimizer {
             efficiency,
             unusedArea: (workingWidth * workingHeight) - totalUsedArea
         };
+    }
+
+    public optimizeLayoutWithGridAlgorithm(
+        items: LayoutItem[],
+        sheetWidth: number,
+        sheetHeight: number,
+        bleedSize: number = 3,
+        margins: {
+            top: number;
+            bottom: number;
+            left: number;
+            right: number;
+        }
+    ) {
+        try {
+            const workingWidth = sheetWidth - margins.left - margins.right;
+            const workingHeight = sheetHeight - margins.top - margins.bottom;
+            const expandedItems = this.expandItemsByQuantity(items);
+
+            const placedItems: PlacedItem[] = [];
+            let currentX = margins.left;
+            let currentY = margins.bottom;
+            let rowHeight = 0;
+
+            for (const item of expandedItems) {
+                const itemWidthWithBleed = item.width + bleedSize * 2;
+                const itemHeightWithBleed = item.height + bleedSize * 2;
+
+                if (itemWidthWithBleed > workingWidth || itemHeightWithBleed > workingHeight) {
+                    console.warn(`Item ${item.orderId} is too large to fit on the sheet.`);
+                    continue;
+                }
+
+                if (currentX + itemWidthWithBleed > sheetWidth - margins.right) {
+                    currentX = margins.left;
+                    currentY += rowHeight;
+                    rowHeight = 0;
+                }
+
+                if (currentY + itemHeightWithBleed > sheetHeight - margins.top) {
+                    console.warn(`No more space to place item ${item.orderId} on the sheet.`);
+                    break;
+                }
+
+                placedItems.push({
+                    ...item,
+                    x: currentX + bleedSize,
+                    y: currentY + bleedSize,
+                    rotation: 0,
+                    actualWidth: item.width,
+                    actualHeight: item.height
+                });
+
+                currentX += itemWidthWithBleed;
+                rowHeight = Math.max(rowHeight, itemHeightWithBleed);
+            }
+
+            const totalUsedArea = placedItems.reduce(
+                (sum, item) => sum + (item.actualWidth * item.actualHeight), 0
+            );
+            const efficiency = (totalUsedArea / (workingWidth * workingHeight)) * 100;
+            return {
+                sheetDetails: {
+                    sheetWidth,
+                    sheetHeight,
+                },
+                placedItems,
+                efficiency,
+                unusedArea: (workingWidth * workingHeight) - totalUsedArea
+            };
+        } catch (error) {
+            throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, 'Error optimizing layout with grid algorithm');
+        }
     }
 }

@@ -1,9 +1,10 @@
 import { Router } from "express"
-import { addCostItem, addPageSize, addPaperConfig, addProduct, addSheet, deleteCostItem, deletePageSize, deletePaperConfig, deleteProduct, getAllCostItems, getAllPageSizes, getAllPaperConfigs, getAllProducts, getAllSheets, getCostItemFromCostId, getPageSizeFromPageId, getPaperConfigFromPaperId, getProductFromProductId, updateCostItem, updatePageSize, updatePaperConfig, updateProduct } from "../controllers/product.js"
+import { addCostItem, addPageSize, addPaperConfig, addProduct, addSheet, deleteCostItem, deletePageSize, deletePaperConfig, deleteProduct, getAllCostItems, getAllPageSizes, getAllPaperConfigs, getAllProducts, getAllSheets, getApplicability, getCostItemEnums, getCostItemFromCostId, getPageSizeFromPageId, getPaperConfigFromPaperId, getProductFromProductId, updateCostItem, updatePageSize, updatePaperConfig, updateProduct } from "../controllers/product.js"
 import { adminMiddleware } from "../middlewares/admin.js"
 
 const productRouter = Router()
 
+productRouter.get("/applicability", getApplicability)
 productRouter.route("/page-size").get(getAllPageSizes).post(adminMiddleware, addPageSize)
 productRouter.route("/page-size/:pageSizeId").get(getPageSizeFromPageId).delete(adminMiddleware, deletePageSize).put(adminMiddleware, updatePageSize)
 
@@ -14,7 +15,7 @@ productRouter.route("/paper-config/:paperConfigId").get(getPaperConfigFromPaperI
 // COST ITEMS
 productRouter.route("/cost-item").get(getAllCostItems).post(adminMiddleware, addCostItem)
 productRouter.route("/cost-item/:costItemId").get(getCostItemFromCostId).delete(adminMiddleware, deleteCostItem).put(adminMiddleware, updateCostItem)
-
+productRouter.get("/cost-item/enums", getCostItemEnums)
 // PRODUCTS
 productRouter.route("/product").get(getAllProducts).post(adminMiddleware, addProduct)
 productRouter.route("/product/:productId").get(getProductFromProductId).delete(adminMiddleware, deleteProduct).put(adminMiddleware, updateProduct)
