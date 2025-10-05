@@ -249,3 +249,43 @@ export const uploadBillingProof = async (req: any, res: any) => {
         )
     }
 }
+
+/**
+ * Assign an order to a staff member (admin only)
+ * Body: { raisedTo: userId, status?: OrderStatus }
+ */
+export const assignOrder = async (req: any, res: any) => {
+    try {
+        const { id } = req.params;
+        const { raisedTo, status } = req.body;
+        if (!raisedTo) {
+            throw new HttpException(
+                HttpStatus.BAD_REQUEST,
+                "raisedTo (staff user id) is required"
+            );
+        }
+        // Basic status validation if provided
+        if (status && !Object.values(OrderStatus).includes(status)) {
+            throw new HttpException(
+                HttpStatus.BAD_REQUEST,
+                `Invalid status value: ${status}`
+            );
+        }
+        const order = await orderDB.getOrderById(id);
+        if (!order) {
+            throw new HttpException(
+                HttpStatus.NOT_FOUND,
+                "Order not found"
+            );
+        }
+        const updateData: any = { raisedTo };
+        if (status) updateData.currentStatus = status;
+        const updated = await orderDB.updateOrder(id, updateData);
+        return res.status(HttpStatus.OK).json(successResponse(updated, "Order assigned successfully"));
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Assigning order failed: ${error}`,
+        );
+    }
+}

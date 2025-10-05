@@ -300,7 +300,8 @@ export const addProduct = async (req: any, res: any) => {
 
 export const getAllProducts = async (req: any, res: any) => {
     try {
-        const products = await productService.getAll(Product);
+        const products = await productService.getAllProducts();
+        console.log(products)
         res.status(HttpStatus.OK).json(successResponse(products, "Products fetched successfully"));
     } catch (error) {
         throw new HttpException(

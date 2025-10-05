@@ -15,6 +15,10 @@ export class UserDB {
         return UserDB.instance;
     }
 
+    public async getAllUsers() {
+        return await User.find();
+    }
+
     public async createUser(user: UserInput, userType: String) {
         const salt = bcrypt.genSaltSync(10);
         const hashedPassword = bcrypt.hashSync(user.password, salt);
@@ -31,5 +35,16 @@ export class UserDB {
     public async getUserByUsername(username: String) {
         const user = await User.findOne({ username });
         return user;
+    }
+
+    public async updateUserByUsername(username: String, data: Partial<UserInput>) {
+        if (data.password) {
+            const salt = bcrypt.genSaltSync(10);
+            const hashedPassword = bcrypt.hashSync(data.password, salt);
+            data.password = hashedPassword;
+        }
+        const updatedUser = await User.findOneAndUpdate({ username }, data, { new: true });
+        if (!updatedUser) throw new Error("User not found or not updated");
+        return updatedUser;
     }
 }

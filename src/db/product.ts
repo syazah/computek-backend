@@ -1,4 +1,5 @@
 import type { Model } from "mongoose"
+import { Product } from "../schema/Product.js"
 export class ProductDB {
     private static instance: ProductDB
     private constructor() { }
@@ -37,5 +38,9 @@ export class ProductDB {
             { $set: updatedData },
             { new: true }
         )
+    }
+
+    public async getAllProducts() {
+        return Product.find().populate('availableSizes availablePapers costItems')
     }
 }

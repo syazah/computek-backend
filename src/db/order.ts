@@ -32,7 +32,7 @@ export class OrderDB {
     }
 
     public async getAllOrders() {
-        const orders = await Order.find();
+        const orders = await Order.find().populate('raisedBy', 'name username userType').populate('raisedTo', 'name username userType');
         if (!orders) {
             throw new Error("No orders found");
         }

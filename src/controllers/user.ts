@@ -7,6 +7,18 @@ import { successResponse } from "../services/responses/successResponse.js";
 
 const userDB = UserDB.getInstance();
 
+export const getAllUsers = async (req: any, res: any) => {
+    try {
+        const users = await userDB.getAllUsers();
+        return res.status(HttpStatus.OK).json(successResponse(users, "Users fetched successfully"));
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Something went wrong while fetching users ${error}`,
+        );
+    }
+}
+
 /**
  * Create a user based on their user type.
  * @param req - The request object.
@@ -79,11 +91,37 @@ export const getSingleUserInfo = async (req: any, res: any) => {
                 `User not found with username: ${username}`
             );
         }
-        return res.status(HttpStatus.OK).json(successResponse({ email: user.email, username: user.username, userType: user.userType }, "User info fetched successfully"));
+        const userObj: any = user.toObject();
+        delete userObj.password;
+        return res.status(HttpStatus.OK).json(successResponse(userObj, "User info fetched successfully"));
     } catch (error) {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
             `Something went wrong while fetching user info ${error}`,
+        );
+    }
+}
+
+
+export const updateSingleUserInfo = async (req: any, res: any) => {
+    try {
+        const { username } = req.user;
+        const body = req.body
+        const parseResult = UserSchema.partial().safeParse(body)
+        if (!parseResult.success) {
+            throw new HttpException(
+                HttpStatus.BAD_REQUEST,
+                `Validation failed: ${JSON.stringify(parseResult.error.format())}`
+            )
+        }
+        const updatedUser = await userDB.updateUserByUsername(username, body);
+        const updatedObj: any = updatedUser.toObject();
+        delete updatedObj.password;
+        return res.status(HttpStatus.OK).json(successResponse(updatedObj, "User info updated successfully"));
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Something went wrong while updating user info ${error}`,
         );
     }
 }
