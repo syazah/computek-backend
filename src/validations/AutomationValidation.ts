@@ -1,10 +1,14 @@
 import * as z from "zod"
+import { AutomationType } from "../enums/AutomationEnum.js";
 
 export const AutomationValidation = z.object({
     orderIds: z.array(z.string()),
     sheetId: z.string(),
     bleed: z.number().optional(),
     rotationsAllowed: z.boolean(),
+    type: z.enum(AutomationType).default(AutomationType.BOTTOM_LEFT_FILL),
+    name: z.string().optional(),
+    description: z.string().optional(),
     margins: z.object({
         top: z.number().min(0).default(0),
         bottom: z.number().min(0).default(0),

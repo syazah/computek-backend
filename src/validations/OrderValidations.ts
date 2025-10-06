@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { OrderStatus, PaymentType } from "../enums/OrderEnum.js";
+import { OrderStatus, PaymentType, PrintingSide } from "../enums/OrderEnum.js";
 
 // Zod schema for orderDetails
 export const orderDetailsValidationSchema = z.object({
@@ -8,16 +8,15 @@ export const orderDetailsValidationSchema = z.object({
     width: z.number("Product width is required"),
     height: z.number("Product height is required"),
     quantity: z.number("Quantity is required"),
-    paperType: z.string("Paper type is required"),
-    printingSide: z.string("Printing side is required"),
-    foldingType: z.string("Folding type is required"),
-    laminationType: z.string("Lamination type is required"),
-    uvType: z.string("UV type is required"),
-    foilType: z.string("Foil type is required"),
-    dieType: z.string("Die type is required"),
-    textureType: z.string("Texture type is required"),
-    additionalNote: z.string("Additional note is required"),
-    fileUrl: z.url("Invalid URL format"),
+    printingSide: z.enum(PrintingSide).default(PrintingSide.SINGLE),
+    foldingType: z.string("Folding type is required").optional(),
+    laminationType: z.string("Lamination type is required").optional(),
+    uvType: z.string("UV type is required").optional(),
+    foilType: z.string("Foil type is required").optional(),
+    dieType: z.string("Die type is required").optional(),
+    textureType: z.string("Texture type is required").optional(),
+    additionalNote: z.string("Additional note is required").optional(),
+    fileUrl: z.url("Invalid URL format").optional(),
     quality: z.number("Image quality is required"),
 });
 

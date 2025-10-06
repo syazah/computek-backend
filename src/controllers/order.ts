@@ -289,3 +289,26 @@ export const assignOrder = async (req: any, res: any) => {
         );
     }
 }
+
+export const updateOrderController = async (req: any, res: any) => {
+    try {
+        const { id } = req.params;
+        const body = req.body;
+        const validate = orderValidationSchema.partial().safeParse(body);
+        if (!validate.success) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, `Validation failed: ${validate.error.message}`);
+        }
+        const order = await orderDB.getOrderById(id);
+        if (!order) {
+            throw new HttpException(HttpStatus.NOT_FOUND, `Order not found for _id ${id}`);
+        }
+        const updatedOrder = await orderDB.updateOrder(id, validate.data as Partial<IOrderDetails>);
+        if (!updatedOrder) {
+            throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Order not updated");
+        }
+        return res.status(HttpStatus.OK).json(successResponse(updatedOrder, "Order updated successfully"));
+    } catch (error) {
+        throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR,
+            `An error occurred while updating the order. ${error}`)
+    }
+}

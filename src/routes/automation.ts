@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { startAutomation } from "../controllers/automation.js";
+import { getAllAutomations, startAutomation, getAutomationById } from "../controllers/automation.js";
 
 const automationRouter = Router();
 
-automationRouter.post("/", startAutomation)
+automationRouter.route("/").post(startAutomation).get(getAllAutomations)
+automationRouter.get('/:id', getAutomationById);
 
 export default automationRouter;

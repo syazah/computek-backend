@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { OrderStatus, PaymentType } from "../enums/OrderEnum.js";
+import { OrderStatus, PaymentType, PrintingSide } from "../enums/OrderEnum.js";
 import { required } from "zod/mini";
 
 const orderDetailsSchema = new mongoose.Schema({
@@ -25,39 +25,33 @@ const orderDetailsSchema = new mongoose.Schema({
     },
     printingSide: {
         type: String,
+        enum: Object.values(PrintingSide),
+        default: PrintingSide.SINGLE,
         required: true,
     },
     foldingType: {
         type: String,
-        required: true,
     },
     laminationType: {
         type: String,
-        required: true,
     },
     uvType: {
         type: String,
-        required: true
     },
     foilType: {
         type: String,
-        required: true
     },
     dieType: {
         type: String,
-        required: true
     },
     textureType: {
         type: String,
-        required: true
     },
     additionalNote: {
         type: String,
-        required: true
     },
     quality: {
         type: Number,
-        required: true,
     },
     fileUrl: {
         type: String,

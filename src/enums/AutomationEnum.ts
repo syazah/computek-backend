@@ -1,6 +1,6 @@
-export enum AutomationStatus {
-    PENDING = "PENDING",
-    APPROVED = "APPROVED",
-    IN_PRODUCTION = "IN_PRODUCTION",
-    COMPLETED = "COMPLETED"
+export enum AutomationType {
+    BOTTOM_LEFT_FILL = "BOTTOM_LEFT_FILL",
+    SHELF = "SHELF",
+    MAX_RECTS = "MAX_RECTS",
+    GANG = "GANG",
 }
