@@ -7,6 +7,7 @@ import { authMiddleware } from "./middlewares/auth.js";
 import automationRouter from "./routes/automation.js";
 import { adminMiddleware } from "./middlewares/admin.js";
 import supportRouter from "./routes/support.js";
+import downloadsRouter from "./routes/downloads.js";
 
 const routes = Router();
 
@@ -16,6 +17,6 @@ routes.use("/v1/products", authMiddleware, productRouter)
 routes.use("/v1/order", authMiddleware, orderRouter)
 routes.use("/v1/automate", authMiddleware, adminMiddleware, automationRouter)
 routes.use("/v1/support", authMiddleware, supportRouter)
-routes.use("/v1/downloads", authMiddleware,)
+routes.use("/v1/downloads", authMiddleware, downloadsRouter)
 
 export default routes;
