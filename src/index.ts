@@ -18,7 +18,7 @@ app.use("/api", routes)
 app.use("/healthCheck", (req, res) => {
     res.status(200).send({
         status: "OK",
-        message: `Server is healthy and running 🚀 on port ${port}`,
+        message: `Server is healthy and running 🚀 on port ${port}, version is 1.0.1`,
     });
 });
 
