@@ -18,5 +18,6 @@ routes.use("/v1/order", authMiddleware, orderRouter)
 routes.use("/v1/automate", authMiddleware, adminMiddleware, automationRouter)
 routes.use("/v1/support", authMiddleware, supportRouter)
 routes.use("/v1/downloads", authMiddleware, downloadsRouter)
+routes.use("/v1/analytics", authMiddleware, )
 
 export default routes;
