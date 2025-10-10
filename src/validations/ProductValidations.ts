@@ -8,7 +8,8 @@ export const pageSizeValidationSchema = z.object({
     width: z.number("Width is required"), // in mm
     height: z.number("Height is required"), // in mm
     applicability: z.enum(Applicability),
-    associatedCost: z.number("Associated Cost is required")
+    associatedCost: z.number("Associated Cost is required"),
+    quantity: z.number().optional().default(1)
 });
 
 export type IPageSize = z.infer<typeof pageSizeValidationSchema>;
@@ -19,7 +20,8 @@ export const paperConfigValidationSchema = z.object({
     type: z.string("Paper type is required").toUpperCase(),
     gsm: z.number("GSM is required"),
     applicability: z.enum(Applicability),
-    associatedCost: z.number("Associated Cost is Required")
+    associatedCost: z.number("Associated Cost is Required"),
+    quantity: z.number().optional().default(1)
 });
 
 export type IPaperConfig = z.infer<typeof paperConfigValidationSchema>;
@@ -30,7 +32,8 @@ export const costItemValidationSchema = z.object({
     type: z.enum(CostItemEnum),
     value: z.string("Cost item value is required"),
     applicability: z.enum(Applicability),
-    associatedCost: z.number("Associated cost is required")
+    associatedCost: z.number("Associated cost is required"),
+    quantity: z.number().optional().default(1)
 });
 
 export type ICostItem = z.infer<typeof costItemValidationSchema>;
@@ -39,6 +42,7 @@ export const SheetValidationSchema = z.object({
     name: z.string("Sheet name is required").toUpperCase(),
     width: z.number("Width is required"),
     height: z.number("Height is required"),
+    quantity: z.number().optional().default(1)
 });
 
 export type ISheet = z.infer<typeof SheetValidationSchema>;

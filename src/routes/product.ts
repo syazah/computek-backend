@@ -6,19 +6,19 @@ const productRouter = Router()
 
 productRouter.get("/applicability", getApplicability)
 productRouter.route("/page-size").get(getAllPageSizes).post(adminMiddleware, addPageSize)
-productRouter.route("/page-size/:pageSizeId").get(getPageSizeFromPageId).delete(adminMiddleware, deletePageSize).put(adminMiddleware, updatePageSize)
+productRouter.route("/page-size/:pageSizeId").get(getPageSizeFromPageId).delete(adminMiddleware, deletePageSize).patch(adminMiddleware, updatePageSize)
 
 // PAPER CONFIGS
 productRouter.route("/paper-config").get(getAllPaperConfigs).post(adminMiddleware, addPaperConfig)
-productRouter.route("/paper-config/:paperConfigId").get(getPaperConfigFromPaperId).delete(adminMiddleware, deletePaperConfig).put(adminMiddleware, updatePaperConfig)
+productRouter.route("/paper-config/:paperConfigId").get(getPaperConfigFromPaperId).delete(adminMiddleware, deletePaperConfig).patch(adminMiddleware, updatePaperConfig)
 
 // COST ITEMS
 productRouter.route("/cost-item").get(getAllCostItems).post(adminMiddleware, addCostItem)
 productRouter.get("/cost-item/enums", getCostItemEnums)
-productRouter.route("/cost-item/:costItemId").get(getCostItemFromCostId).delete(adminMiddleware, deleteCostItem).put(adminMiddleware, updateCostItem)
+productRouter.route("/cost-item/:costItemId").get(getCostItemFromCostId).delete(adminMiddleware, deleteCostItem).patch(adminMiddleware, updateCostItem)
 // PRODUCTS
 productRouter.route("/product").get(getAllProducts).post(adminMiddleware, addProduct)
-productRouter.route("/product/:productId").get(getProductFromProductId).delete(adminMiddleware, deleteProduct).put(adminMiddleware, updateProduct)
+productRouter.route("/product/:productId").get(getProductFromProductId).delete(adminMiddleware, deleteProduct).patch(adminMiddleware, updateProduct)
 
 //SHEETS
 productRouter.route("/sheets").get(getAllSheets).post(adminMiddleware, addSheet)

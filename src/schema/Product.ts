@@ -8,7 +8,11 @@ const pageSizeSchema = new mongoose.Schema({
     width: { type: Number, required: true },
     height: { type: Number, required: true },
     associatedCost: { type: Number, required: true },
-    applicability: { type: String, enum: Applicability }
+    applicability: { type: String, enum: Applicability },
+    quantity: {
+        type: Number,
+        default: 1,
+    }
 });
 
 const paperConfigSchema = new mongoose.Schema({
@@ -16,7 +20,11 @@ const paperConfigSchema = new mongoose.Schema({
     type: { type: String, required: true },
     gsm: { type: Number, required: true },
     associatedCost: { type: Number, required: true },
-    applicability: { type: String, enum: Applicability }
+    applicability: { type: String, enum: Applicability },
+    quantity: {
+        type: Number,
+        default: 1,
+    }
 });
 
 const costItemSchema = new mongoose.Schema({
@@ -24,7 +32,11 @@ const costItemSchema = new mongoose.Schema({
     type: { type: String, enum: CostItemEnum, required: true },
     value: { type: String, required: true },
     applicability: { type: String, enum: Applicability, required: true },
-    associatedCost: { type: Number, required: true }
+    associatedCost: { type: Number, required: true },
+    quantity: {
+        type: Number,
+        default: 1,
+    }
 })
 
 const ProductSchema = new mongoose.Schema({
@@ -40,6 +52,7 @@ const SheetSchema = new mongoose.Schema({
     name: { type: String, required: true },
     width: { type: Number, required: true },
     height: { type: Number, required: true },
+    quantity: { type: Number, default: 1 },
 });
 
 export const PaperConfig = mongoose.model("PaperConfig", paperConfigSchema);

@@ -8,6 +8,9 @@ import automationRouter from "./routes/automation.js";
 import { adminMiddleware } from "./middlewares/admin.js";
 import supportRouter from "./routes/support.js";
 import downloadsRouter from "./routes/downloads.js";
+import analyticsRouter from "./routes/analytics.js";
+import vendorRouter from "./routes/vendors.js";
+import imagesRouter from "./routes/images.js";
 
 const routes = Router();
 
@@ -18,6 +21,9 @@ routes.use("/v1/order", authMiddleware, orderRouter)
 routes.use("/v1/automate", authMiddleware, adminMiddleware, automationRouter)
 routes.use("/v1/support", authMiddleware, supportRouter)
 routes.use("/v1/downloads", authMiddleware, downloadsRouter)
-routes.use("/v1/analytics", authMiddleware, )
+routes.use("/v1/analytics", authMiddleware, analyticsRouter)
+routes.use("/v1/vendors", authMiddleware, adminMiddleware, vendorRouter)
+// Image proxy must be public (no auth) to be consumable by html2canvas without credential taint
+routes.use("/v1/images", imagesRouter)
 
 export default routes;
