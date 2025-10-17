@@ -77,6 +77,11 @@ const UserSchema = new Schema({
         type: Date,
         required: false,
         unique: false,
+    },
+    preferredCourier: {
+        type: String,
+        required: false,
+        unique: false,
     }
 }, {
     timestamps: true,

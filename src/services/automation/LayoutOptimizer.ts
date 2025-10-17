@@ -109,6 +109,7 @@ export class LayoutOptimizer {
                 console.warn(`Item ${item.orderId} could not be placed on the sheet.`);
             }
         }
+        // Efficiency excludes bleed by contract with controller: actualWidth/actualHeight here should reflect printable size (no extra bleed)
         const totalUsedArea = placedItems.reduce(
             (sum, item) => sum + (item.actualWidth * item.actualHeight), 0
         );
@@ -192,6 +193,7 @@ export class LayoutOptimizer {
             }
         }
 
+        // Efficiency excludes bleed
         const usedArea = placed.reduce((s, p) => s + p.actualWidth * p.actualHeight, 0);
         const efficiency = (usedArea / (workingWidth * workingHeight)) * 100;
 
@@ -224,8 +226,8 @@ export class LayoutOptimizer {
         const freeRects: FreeRect[] = [{
             x: margins.left,
             y: margins.bottom,
-            width: workingWidth - margins.left,
-            height: workingHeight - margins.bottom
+            width: workingWidth,
+            height: workingHeight
         }];
         const placed: PlacedItem[] = [];
 

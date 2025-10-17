@@ -1,7 +1,6 @@
 import { HttpStatus } from "http-status-ts";
 import { HttpException } from "../services/responses/HttpException.js";
-import fs from "fs"
-import { billingDetailsValidationSchema, orderDetailsValidationSchema, orderValidationSchema, type IOrderDetails } from "../validations/OrderValidations.js";
+import { billingDetailsValidationSchema, orderDetailsValidationSchema, orderValidationSchema, orderUpdateValidationSchema, type IOrderDetails } from "../validations/OrderValidations.js";
 import { OrderDB } from "../db/order.js";
 import { successResponse } from "../services/responses/successResponse.js";
 import { AWSHelper } from "../services/aws/client.js";
@@ -132,6 +131,29 @@ export const getOrderById = async (req: any, res: any) => {
     }
 }
 
+export const deleteOrderById = async (req: any, res: any) => {
+    try {
+        const id = req.params.id;
+        const order = await orderDB.getOrderById(id);
+        if (!order) {
+            throw new HttpException(HttpStatus.NOT_FOUND, "Order not found");
+        }
+
+        if (order.currentStatus !== OrderStatus.CANCELLED) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, `Only orders with status CANCELLED can be deleted. Current status: ${order.currentStatus}`);
+        }
+        const deletedOrder = await orderDB.updateOrder(id, { currentStatus: OrderStatus.DELETED });
+        if (!deletedOrder) {
+            throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Order not deleted");
+        }
+        return res.status(HttpStatus.OK).json(successResponse(deletedOrder, "Order deleted successfully"));
+    } catch (error) {
+        throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR,
+            `Something went wrong while fetching the order by status: ${error}`
+        )
+    }
+}
+
 /**
  * Get order by ID for the logged in user
  * 1. Fetch order from DB
@@ -178,6 +200,25 @@ export const getAllOrders = async (req: any, res: any) => {
         throw new HttpException(
             HttpStatus.INTERNAL_SERVER_ERROR,
             `Fetching orders failed: ${error}`,
+        )
+    }
+}
+
+export const getOrderByStatus = async (req: any, res: any) => {
+    try {
+        const status = req.params.status;
+        if (!Object.values(OrderStatus).includes(status)) {
+            throw new HttpException(
+                HttpStatus.BAD_REQUEST,
+                `Invalid status value: ${status}`
+            )
+        }
+        const orders = await orderDB.getOrderByStatus(status);
+        return res.status(HttpStatus.OK).json(successResponse(orders, `Orders with status ${status} fetched successfully`));
+    } catch (error) {
+        throw new HttpException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            `Fetching orders by status failed: ${error}`,
         )
     }
 }
@@ -294,7 +335,8 @@ export const updateOrderController = async (req: any, res: any) => {
     try {
         const { id } = req.params;
         const body = req.body;
-        const validate = orderValidationSchema.partial().safeParse(body);
+        // Allow partial nested updates
+        const validate = orderUpdateValidationSchema.safeParse(body);
         if (!validate.success) {
             throw new HttpException(HttpStatus.BAD_REQUEST, `Validation failed: ${validate.error.message}`);
         }
@@ -302,7 +344,26 @@ export const updateOrderController = async (req: any, res: any) => {
         if (!order) {
             throw new HttpException(HttpStatus.NOT_FOUND, `Order not found for _id ${id}`);
         }
-        const updatedOrder = await orderDB.updateOrder(id, validate.data as Partial<IOrderDetails>);
+        // Build update object with dot-notation for nested fields
+        const updateData: any = {};
+        const data = validate.data as any;
+        if (data.raisedTo !== undefined) updateData.raisedTo = data.raisedTo;
+        if (data.currentStatus !== undefined) updateData.currentStatus = data.currentStatus;
+        if (data.orderDetails) {
+            Object.entries(data.orderDetails).forEach(([k, v]) => {
+                updateData[`orderDetails.${k}`] = v;
+            });
+        }
+        if (data.billingDetails) {
+            Object.entries(data.billingDetails).forEach(([k, v]) => {
+                updateData[`billingDetails.${k}`] = v;
+            });
+        }
+        // If quantity updated AND no explicit status provided, set to ACTIVE to allow re-automation
+        if (data.currentStatus === undefined && data?.orderDetails?.quantity !== undefined) {
+            updateData.currentStatus = OrderStatus.ACTIVE;
+        }
+        const updatedOrder = await orderDB.updateOrder(id, updateData);
         if (!updatedOrder) {
             throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Order not updated");
         }

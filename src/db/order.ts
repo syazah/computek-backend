@@ -1,3 +1,4 @@
+import type { OrderStatus } from "../enums/OrderEnum.js";
 import { Order } from "../schema/Order.js";
 import type { IOrder } from "../validations/OrderValidations.js";
 
@@ -23,6 +24,14 @@ export class OrderDB {
         return addedData;
     }
 
+    public async getOrderByStatus(status: OrderStatus) {
+        const orders = await Order.find({ currentStatus: status }).populate('raisedBy', 'name username userType').populate('raisedTo', 'name username userType');
+        if (!orders) {
+            throw new Error("No orders found with the given status");
+        }
+        return orders;
+    }
+    
     public async getOrderById(id: string) {
         const order = await Order.findById(id);
         if (!order) {

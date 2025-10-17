@@ -41,3 +41,13 @@ export const orderValidationSchema = z.object({
 });
 
 export type IOrder = z.infer<typeof orderValidationSchema>;
+
+// Partial update schema for orders (nested partials)
+export const orderUpdateValidationSchema = z.object({
+    raisedTo: z.string().optional(),
+    currentStatus: z.enum(OrderStatus).optional(),
+    orderDetails: orderDetailsValidationSchema.partial().optional(),
+    billingDetails: billingDetailsValidationSchema.partial().optional(),
+});
+
+export type IOrderUpdate = z.infer<typeof orderUpdateValidationSchema>;

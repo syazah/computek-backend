@@ -23,4 +23,8 @@ export class AutomationDB {
     public async getAllAutomations() {
         return await Automation.find().populate('orders');
     }
+
+    public async deleteAutomation(_id: string) {
+        return await Automation.findByIdAndDelete(_id);
+    }
 }
