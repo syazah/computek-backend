@@ -30,41 +30,73 @@ export class LayoutOptimizer {
         );
     }
 
-    private findBestPlacement(item: LayoutItem,
+    private findBestPlacement(
+        item: LayoutItem,
         maxWidth: number,
         maxHeight: number,
-        occupiedSpaces: { x: number, y: number, width: number, height: number }[],
+        occupiedSpaces: { x: number; y: number; width: number; height: number }[],
         bleedSize: number,
-        margins: { top: number, bottom: number, left: number, right: number }) {
-        const orientations = item.canRotate ? [
-            { width: item.width, height: item.height, rotation: 0 },
-            { width: item.height, height: item.width, rotation: 90 }
-        ] : [{ width: item.width, height: item.height, rotation: 0 }];
+        margins: { top: number; bottom: number; left: number; right: number }
+    ) {
+        // Work in absolute sheet coordinates bounded by margins
+        const xStart = margins.left;
+        const yStart = margins.bottom;
+        const xEnd = maxWidth - margins.right; // inclusive bound reference
+        const yEnd = maxHeight - margins.top;
 
-        for (const orientation of orientations) {
-            const itemWithBleed = {
-                width: orientation.width + bleedSize * 2,
-                height: orientation.height + bleedSize * 2
-            };
-            if (itemWithBleed.width > maxWidth || itemWithBleed.height > maxHeight) {
-                continue;
-            }
-            for (let y = margins.bottom; y <= maxHeight - itemWithBleed.height; y += 1) {
-                for (let x = margins.left; x <= maxWidth - itemWithBleed.width; x += 1) {
-                    if (!this.hasOverlap(x, y, itemWithBleed.width, itemWithBleed.height, occupiedSpaces)) {
-                        return {
-                            ...item,
-                            x: x + bleedSize,
-                            y: y + bleedSize,
-                            rotation: orientation.rotation,
-                            actualWidth: orientation.width,
-                            actualHeight: orientation.height
-                        };
+        const orientations = item.canRotate
+            ? [
+                { width: item.width, height: item.height, rotation: 0 },
+                { width: item.height, height: item.width, rotation: 90 }
+            ]
+            : [{ width: item.width, height: item.height, rotation: 0 }];
+
+        // Scan bottom-left; at each candidate position choose the orientation that minimizes horizontal slack
+        for (let y = yStart; y <= yEnd; y += 1) {
+            for (let x = xStart; x <= xEnd; x += 1) {
+                let best: { o: { width: number; height: number; rotation: number }; wB: number; hB: number; perRow: number } | null = null;
+                let bestPerRow = -1;
+                let bestHSlack = Number.POSITIVE_INFINITY;
+                let bestVSlack = Number.POSITIVE_INFINITY;
+
+                for (const o of orientations) {
+                    const wB = o.width + bleedSize * 2;
+                    const hB = o.height + bleedSize * 2;
+
+                    // Bounds check against working area within margins
+                    if (x + wB > xEnd || y + hB > yEnd) continue;
+                    if (this.hasOverlap(x, y, wB, hB, occupiedSpaces)) continue;
+
+                    const hSlack = (xEnd - (x + wB));
+                    const vSlack = (yEnd - (y + hB));
+                    // Simple lookahead: how many items of this orientation could fit across the row from this x
+                    const remainingWidth = xEnd - x;
+                    const perRow = Math.max(1, Math.floor(remainingWidth / wB));
+
+                    if (
+                        perRow > bestPerRow ||
+                        (perRow === bestPerRow && (hSlack < bestHSlack || (hSlack === bestHSlack && vSlack < bestVSlack)))
+                    ) {
+                        best = { o, wB, hB, perRow };
+                        bestPerRow = perRow;
+                        bestHSlack = hSlack;
+                        bestVSlack = vSlack;
                     }
+                }
+
+                if (best) {
+                    return {
+                        ...item,
+                        x: x + bleedSize,
+                        y: y + bleedSize,
+                        rotation: best.o.rotation,
+                        actualWidth: best.o.width,
+                        actualHeight: best.o.height
+                    };
                 }
             }
         }
-        return null
+        return null;
     }
 
     public static getInstance(): LayoutOptimizer {
@@ -96,7 +128,8 @@ export class LayoutOptimizer {
         const occupiedSpaces: { x: number, y: number, width: number, height: number }[] = [];
 
         for (const item of expandedItems) {
-            const placement = this.findBestPlacement(item, workingWidth, workingHeight, occupiedSpaces, bleedSize, margins);
+            // Note: findBestPlacement expects absolute sheet dimensions and accounts for margins internally
+            const placement = this.findBestPlacement(item, sheetWidth, sheetHeight, occupiedSpaces, bleedSize, margins);
             if (placement) {
                 placedItems.push(placement);
                 occupiedSpaces.push({
@@ -145,9 +178,14 @@ export class LayoutOptimizer {
             .sort((a, b) => b.height - a.height); // tallest-first for shelf stability
 
         const placed: PlacedItem[] = [];
-        let shelfY = margins.bottom;
+        // Absolute coordinates with margins applied at the bounds
+        const xStart = margins.left;
+        const yStart = margins.bottom;
+        const xEnd = sheetWidth - margins.right;
+        const yEnd = sheetHeight - margins.top;
+        let shelfY = yStart;
         let shelfHeight = 0;
-        let cursorX = margins.left;
+        let cursorX = xStart;
 
         for (const item of expanded) {
             const orientations = item.canRotate
@@ -163,13 +201,13 @@ export class LayoutOptimizer {
                 const hWithBleed = o.h + bleedSize * 2;
 
                 // New shelf if width exceeded
-                if (cursorX + wWithBleed > workingWidth) {
+                if (cursorX + wWithBleed > xEnd) {
                     shelfY += shelfHeight;
-                    cursorX = margins.left;
+                    cursorX = xStart;
                     shelfHeight = 0;
                 }
                 // Check vertical space
-                if (shelfY + hWithBleed > workingHeight) {
+                if (shelfY + hWithBleed > yEnd) {
                     continue; // cannot fit this orientation, try next
                 }
 

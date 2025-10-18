@@ -16,7 +16,12 @@ export const AutomationValidation = z.object({
         right: z.number().min(0).default(0),
     }).optional().default({ top: 0, bottom: 0, left: 0, right: 0 })
 })
-
-//2 - order 11/13 12/14
-
 export type AutomationRequest = z.infer<typeof AutomationValidation>;
+
+export const ManualAutomationValidation = z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    orders: z.array(z.string()),
+    automationFile: z.string()
+})
+export type ManualAutomationRequest = z.infer<typeof ManualAutomationValidation>;

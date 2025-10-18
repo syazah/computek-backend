@@ -1,6 +1,6 @@
 import { HttpStatus } from "http-status-ts"
 import { HttpException } from "../services/responses/HttpException.js"
-import { AutomationValidation } from "../validations/AutomationValidation.js";
+import { AutomationValidation, ManualAutomationValidation } from "../validations/AutomationValidation.js";
 import { AutomationType } from "../enums/AutomationEnum.js";
 import { OrderDB } from "../db/order.js";
 import type { LayoutItem } from "../validations/LayoutValidations.js";
@@ -10,12 +10,13 @@ import { LayoutOptimizer } from "../services/automation/LayoutOptimizer.js";
 import { successResponse } from "../services/responses/successResponse.js";
 import { OrderStatus } from "../enums/OrderEnum.js";
 import { AutomationDB } from "../db/automation.js";
+import { AWSHelper } from "../services/aws/client.js";
 
 const orderDB = OrderDB.getInstance();
 const automationDB = AutomationDB.getInstance();
 const productDB = ProductDB.getInstance();
 const layoutOptimizer = LayoutOptimizer.getInstance();
-
+const awsHelper = AWSHelper.getInstance();
 export const startAutomation = async (req: any, res: any) => {
     try {
         const body = req.body;
@@ -220,5 +221,104 @@ export const deleteAutomationById = async (req: any, res: any) => {
         return res.status(HttpStatus.OK).json(successResponse({ id }, "Deleted Successfully"))
     } catch (error) {
         throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong while deleting the automation")
+    }
+}
+
+
+//MANUAL AUTOMATION START
+export const uploadManualAutomationFile = async (req: any, res: any) => {
+    try {
+        const user = req.user;
+        const file = req.file;
+        if (!file) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, "No file uploaded");
+        }
+        // Double-check 1MB limit server-side
+        const MAX_BYTES = 1 * 1024 * 1024;
+        if (file.size && file.size > MAX_BYTES) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, "File too large. Max 1MB allowed.");
+        }
+
+        const bucketName = `manual-automation-computek-aws`
+        const fileName = `manual-automation-${user.username}-${Date.now()}-${file.originalname}`;
+        const fileUrl = await awsHelper.uploadFile(
+            fileName,
+            file.buffer,
+            file.mimetype,
+            bucketName
+        );
+
+        if (!fileUrl) {
+            throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, `File upload failed`);
+        }
+        return res.status(HttpStatus.OK).json(successResponse({ filePath: fileUrl }, "File uploaded successfully."));
+    } catch (error) {
+        throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR,
+            "Something went wrong while uploading manual automation file")
+    }
+}
+export const addManualAutomation = async (req: any, res: any) => {
+    try {
+        const body = req.body;
+        const validate = ManualAutomationValidation.safeParse(body);
+        if (!validate.success) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, "Invalid manual automation data");
+        }
+        // Create the manual automation entry
+        const manualAutomation = await automationDB.createManualAutomation({
+            ...validate.data,
+            // Optionally track who created it if schema supports (ignored otherwise)
+            // createdBy: req.user?.id,
+        } as any);
+
+        // Mark included orders as MANUALLY_AUTOMATED
+        const orderIds: string[] = validate.data.orders || [];
+        for (const oid of orderIds) {
+            try { await orderDB.updateOrder(oid, { currentStatus: OrderStatus.MANUALLY_AUTOMATED }); } catch { /* ignore per-order failure */ }
+        }
+
+        return res.status(HttpStatus.CREATED).json(successResponse(manualAutomation, "Manual automation created successfully."));
+    } catch (error) {
+        throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR,
+            "Something went wrong while adding manual automation")
+    }
+}
+export const getAllManualAutomations = async (req: any, res: any) => {
+    try {
+        const manualAutomations = await automationDB.getAllManualAutomations();
+        return res.status(HttpStatus.OK).json(successResponse(manualAutomations, "Fetched all manual automations successfully."));
+    } catch (error) {
+        throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR,
+            `An error occurred while fetching manual automations. ${error}`)
+    }
+}
+
+export const getManualAutomationById = async (req: any, res: any) => {
+    try {
+        const { id } = req.params;
+        const manualAutomation = await automationDB.getManualAutomationById(id);
+        if (!manualAutomation) {
+            throw new HttpException(HttpStatus.NOT_FOUND, `Manual Automation with id ${id} not found`);
+        }
+        return res.status(HttpStatus.OK).json(successResponse(manualAutomation, "Fetched manual automation successfully."));
+    } catch (error) {
+        throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR,
+            `An error occurred while fetching manual automation. ${error}`);
+    }
+}
+
+export const deleteManualAutomationById = async (req: any, res: any) => {
+    try {
+        const id = req.params.id;
+        if (!id) {
+            throw new HttpException(
+                HttpStatus.EXPECTATION_FAILED,
+                "Manual Automation id not provided"
+            )
+        }
+        automationDB.deleteManualAutomation(id)
+        return res.status(HttpStatus.OK).json(successResponse({ id }, "Deleted Successfully"))
+    } catch (error) {
+        throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong while deleting the manual automation")
     }
 }

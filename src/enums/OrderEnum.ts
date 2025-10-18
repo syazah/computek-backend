@@ -5,6 +5,7 @@ export enum OrderStatus {
     COMPLETED = "COMPLETED",
     CANCELLED = "CANCELLED",
     DELETED = "DELETED",
+    MANUALLY_AUTOMATED = "MANUALLY_AUTOMATED",
 }
 
 export enum PaymentType {
