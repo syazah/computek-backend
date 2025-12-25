@@ -51,7 +51,7 @@ export const startAutomation = async (req: any, res: any) => {
                 orderId: order.id,
                 width: order.orderDetails.width,
                 height: order.orderDetails.height,
-                quantity: order.orderDetails.quantity,
+                quantity: 1,
                 canRotate: validation.data.rotationsAllowed
             });
             await orderDB.updateOrder(order.id, { currentStatus: OrderStatus.AUTOMATED });

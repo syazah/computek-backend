@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import { ImageManager } from "../services/image/client.js";
 import type { IImageValidations } from "../validations/ImageServiceValidations.js";
 import { OrderStatus } from "../enums/OrderEnum.js";
+import sharp from "sharp";
 
 const orderDB = OrderDB.getInstance();
 const awsHelper = AWSHelper.getInstance();
@@ -81,18 +82,31 @@ export const uploadOrderFile = async (req: any, res: any) => {
         const imageValidationData: IImageValidations = await imageManager.getImageDimensions(
             file.buffer
         );
-        if (imageValidationData.metadata.format !== "jpeg" && imageValidationData.metadata.format !== "png" && imageValidationData.metadata.format !== "jpg") {
-            throw new HttpException(HttpStatus.BAD_REQUEST, `Only JPEG and PNG formats are allowed. Uploaded format: ${imageValidationData.metadata.format}`);
+        if (imageValidationData.metadata.format !== "jpeg" && imageValidationData.metadata.format !== "png" && imageValidationData.metadata.format !== "jpg" && imageValidationData.metadata.format !== "tiff") {
+            throw new HttpException(HttpStatus.BAD_REQUEST, `Only JPEG, PNG, JPG, and TIFF formats are allowed. Uploaded format: ${imageValidationData.metadata.format}`);
         }
         bucketName = `orders-computek-aws`
-        console.log("uploading")
         fileName = `${user.username}-${Date.now()}-${file.originalname}`;
-        const fileUrl = await awsHelper.uploadFile(
-            fileName,
-            file.buffer,
-            file.mimetype,
-            bucketName
-        );
+        var fileUrl = null;
+        if (file.mimetype === 'image/tiff' || file.originalname.endsWith('.tif')) {
+            fileName = fileName.replace(/\.tiff?$/i, '.png');
+            const ttfFile = await sharp(file.buffer)
+                .png()
+                .toBuffer();
+            fileUrl = await awsHelper.uploadFile(
+                fileName,
+                ttfFile,
+                'image/png',
+                bucketName
+            );
+        } else {
+            fileUrl = await awsHelper.uploadFile(
+                fileName,
+                file.buffer,
+                file.mimetype,
+                bucketName
+            );
+        }
 
         if (!fileUrl) {
             throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, `File upload failed`);

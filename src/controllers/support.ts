@@ -9,7 +9,6 @@ const supportDB = SupportClass.getInstance();
 
 export const createSupportTicket = async (req: any, res: any) => {
     try {
-        console.log(req.user.id);
         const parsed = createSupportSchema.parse(req.body);
         const data = { ...parsed, raisedBy: req.user.id };
         const ticket = await supportDB.createTicket(data);
